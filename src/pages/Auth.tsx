@@ -31,6 +31,20 @@ const Auth = () => {
         toast.success("Signed in successfully!");
         navigate("/dashboard");
       } else {
+        // Validate email domain matches a registered school
+        const emailDomain = email.split('@')[1];
+        const { data: school, error: schoolError } = await supabase
+          .from('schools')
+          .select('id, name')
+          .eq('domain', emailDomain)
+          .single();
+
+        if (schoolError || !school) {
+          toast.error(`Email domain @${emailDomain} is not registered with any school. Please use your school email address.`);
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,

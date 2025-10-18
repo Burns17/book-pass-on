@@ -100,15 +100,28 @@ const Profile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!user) return;
 
+    // Validate input lengths
+    const firstName = formData.first_name.trim();
+    const lastName = formData.last_name.trim();
+    
+    if (firstName.length === 0 || firstName.length > 100) {
+      toast.error("First name must be between 1 and 100 characters");
+      return;
+    }
+    if (lastName.length === 0 || lastName.length > 100) {
+      toast.error("Last name must be between 1 and 100 characters");
+      return;
+    }
+
+    setLoading(true);
     try {
       const { error } = await supabase
         .from("profiles")
         .update({
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          school_id: formData.school_id || null,
+          first_name: firstName,
+          last_name: lastName,
           graduation_year: formData.graduation_year ? parseInt(formData.graduation_year) : null,
         })
         .eq("id", user.id);
@@ -176,23 +189,15 @@ const Profile = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="school">School</Label>
-                  <Select
-                    value={formData.school_id}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, school_id: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your school" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {schools.map((school) => (
-                        <SelectItem key={school.id} value={school.id}>
-                          {school.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="school"
+                    value={schools.find(s => s.id === formData.school_id)?.name || 'Not assigned'}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Your school is automatically assigned based on your email domain and cannot be changed.
+                  </p>
                 </div>
 
                 <div className="space-y-2">

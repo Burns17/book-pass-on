@@ -59,16 +59,39 @@ const AddTextbook = () => {
       return;
     }
 
+    // Validate inputs
+    const title = formData.title.trim();
+    const author = formData.author.trim();
+    const isbn = formData.isbn.trim();
+    const edition = formData.edition.trim();
+
+    if (title.length === 0 || title.length > 200) {
+      toast.error("Title must be between 1 and 200 characters");
+      return;
+    }
+    if (author && author.length > 100) {
+      toast.error("Author name must be 100 characters or less");
+      return;
+    }
+    if (isbn && (isbn.length < 10 || isbn.length > 17 || !/^[0-9-]+$/.test(isbn))) {
+      toast.error("ISBN must be 10-17 characters and contain only numbers and hyphens");
+      return;
+    }
+    if (edition && edition.length > 50) {
+      toast.error("Edition must be 50 characters or less");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase.from("textbooks").insert({
         owner_id: user.id,
         school_id: profile.school_id,
-        title: formData.title,
-        author: formData.author || null,
-        isbn: formData.isbn || null,
-        edition: formData.edition || null,
+        title,
+        author: author || null,
+        isbn: isbn || null,
+        edition: edition || null,
         condition: formData.condition,
         status: "available",
       });
