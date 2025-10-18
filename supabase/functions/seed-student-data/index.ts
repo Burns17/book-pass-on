@@ -144,6 +144,45 @@ Deno.serve(async (req) => {
       },
     });
 
+    // **SECURITY**: Verify that the requesting user is authenticated and has admin role
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.log('Unauthorized seed attempt - no auth header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.log('Unauthorized seed attempt - invalid token');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user has admin role
+    const { data: userRole, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (roleError || !userRole) {
+      console.log(`Forbidden seed attempt by non-admin user: ${user.email}`);
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - Admin access required to seed data' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Admin user ${user.email} is seeding student data...`);
+
     // Get school_id for school.com
     const { data: school } = await supabaseAdmin
       .from('schools')
