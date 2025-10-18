@@ -49,11 +49,18 @@ const Index = () => {
                   </Button>
                 </Link>
                 {!user && (
-                  <Link to="/auth">
-                    <Button size="lg" variant="outline" className="text-lg px-8">
-                      Sign In
-                    </Button>
-                  </Link>
+                  <>
+                    <Link to="/auth">
+                      <Button size="lg" variant="outline" className="text-lg px-8">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/seed-data">
+                      <Button size="lg" variant="outline" className="text-lg px-8">
+                        Seed Test Data
+                      </Button>
+                    </Link>
+                  </>
                 )}
               </div>
             </div>
