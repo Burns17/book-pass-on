@@ -65,7 +65,7 @@ const SeedData = () => {
             <div className="border-t pt-4 space-y-2">
               <h3 className="font-semibold">Step 2: Download Credentials</h3>
               <p className="text-sm text-muted-foreground">
-                Download a CSV file containing all student emails and passwords (Password: Pass2025!)
+                Download a CSV file containing all student emails and passwords (Password: Student ID)
               </p>
               <Button 
                 onClick={handleDownloadCredentials}
@@ -84,7 +84,7 @@ const SeedData = () => {
                 <li>• MiaBlack@school.com</li>
                 <li>• JosephineJones@school.com</li>
               </ul>
-              <p className="text-sm mt-2 font-medium">All passwords: Pass2025!</p>
+              <p className="text-sm mt-2 font-medium">All passwords: Student ID (e.g., 11110)</p>
             </div>
           </CardContent>
         </Card>
