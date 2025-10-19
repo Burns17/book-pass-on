@@ -14,7 +14,6 @@ import Profile from "./pages/Profile";
 import SeedData from "./pages/SeedData";
 import Admin from "./pages/Admin";
 import MyRequests from "./pages/MyRequests";
-import BorrowedBooks from "./pages/BorrowedBooks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,7 +31,6 @@ const App = () => (
           <Route path="/school-library" element={<SchoolLibrary />} />
           <Route path="/my-textbooks" element={<MyTextbooks />} />
           <Route path="/my-requests" element={<MyRequests />} />
-          <Route path="/borrowed-books" element={<BorrowedBooks />} />
           <Route path="/add-textbook" element={<AddTextbook />} />
           <Route path="/edit-textbook/:id" element={<EditTextbook />} />
           <Route path="/profile" element={<Profile />} />

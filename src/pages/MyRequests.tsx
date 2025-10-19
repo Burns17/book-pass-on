@@ -192,7 +192,7 @@ const MyRequests = () => {
     }
   };
 
-  const handleConfirmPickup = async (requestId: string, textbookId: string) => {
+  const handleConfirmPickup = async (requestId: string, textbookId: string, borrowerId: string) => {
     try {
       const { error: requestError } = await supabase
         .from("requests")
@@ -203,15 +203,18 @@ const MyRequests = () => {
 
       const { error: textbookError } = await supabase
         .from("textbooks")
-        .update({ status: "lent" })
+        .update({ 
+          owner_id: borrowerId,
+          status: "available"
+        })
         .eq("id", textbookId);
 
       if (textbookError) throw textbookError;
 
-      toast.success("Pickup confirmed! Book is now in your possession.");
+      toast.success("Book ownership transferred successfully!");
       fetchRequests();
     } catch (error: any) {
-      toast.error("Error confirming pickup");
+      toast.error("Error transferring book ownership");
     }
   };
 
@@ -387,7 +390,7 @@ const MyRequests = () => {
                               {request.status === "approved" && (
                                 <Button 
                                   size="sm" 
-                                  onClick={() => handleConfirmPickup(request.id, request.textbooks.id)}
+                                  onClick={() => handleConfirmPickup(request.id, request.textbooks.id, request.borrower_id)}
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-1" />
                                   Confirm Pickup

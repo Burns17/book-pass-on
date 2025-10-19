@@ -68,9 +68,6 @@ const Navbar = ({ user }: NavbarProps) => {
               <Link to="/my-requests">
                 <Button variant="ghost">Requests</Button>
               </Link>
-              <Link to="/borrowed-books">
-                <Button variant="ghost">Borrowed</Button>
-              </Link>
               {isAdmin && (
                 <Link to="/admin">
                   <Button variant="ghost" className="gap-2">
