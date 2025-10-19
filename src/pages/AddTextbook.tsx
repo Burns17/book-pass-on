@@ -28,6 +28,8 @@ const AddTextbook = () => {
     edition: "",
     condition: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -49,6 +51,18 @@ const AddTextbook = () => {
 
     checkUser();
   }, [navigate]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +93,28 @@ const AddTextbook = () => {
     setLoading(true);
 
     try {
+      let photoUrl = null;
+
+      // Upload photo if selected
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('textbook-photos')
+          .upload(fileName, photoFile);
+
+        if (uploadError) {
+          console.error("Error uploading photo:", uploadError);
+          throw uploadError;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('textbook-photos')
+          .getPublicUrl(uploadData.path);
+        
+        photoUrl = publicUrl;
+      }
       console.log("Adding textbook with data:", {
         owner_id: user.id,
         school_id: profile?.school_id,
@@ -99,6 +135,7 @@ const AddTextbook = () => {
         edition: edition || null,
         condition: formData.condition,
         status: "available",
+        photo_url: photoUrl,
       });
 
       if (error) {
@@ -205,6 +242,25 @@ const AddTextbook = () => {
                     <SelectItem value="fair">Fair</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="photo">Photo (Optional)</Label>
+                <Input
+                  id="photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                />
+                {photoPreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={photoPreview} 
+                      alt="Preview" 
+                      className="w-full h-48 object-cover rounded-md"
+                    />
+                  </div>
+                )}
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
