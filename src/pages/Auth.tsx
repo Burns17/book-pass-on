@@ -23,14 +23,32 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user arrived from password reset email
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get('type');
+    // Listen for auth state changes to detect recovery session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, 'Session:', session);
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true);
+        toast.info("Please enter your new password");
+      }
+    });
+
+    // Also check URL hash on mount
+    const checkRecoveryHash = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      
+      if (type === 'recovery') {
+        setIsResettingPassword(true);
+        toast.info("Please enter your new password");
+      }
+    };
     
-    if (type === 'recovery') {
-      setIsResettingPassword(true);
-      toast.info("Please enter your new password");
-    }
+    checkRecoveryHash();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleVerifyStudent = async (e: React.FormEvent) => {
