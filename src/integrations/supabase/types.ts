@@ -404,6 +404,14 @@ export type Database = {
         Args: { "": string }
         Returns: string[]
       }
+      transfer_book_ownership: {
+        Args: {
+          _new_owner_id: string
+          _request_id: string
+          _textbook_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "student"

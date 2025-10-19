@@ -194,27 +194,18 @@ const MyRequests = () => {
 
   const handleConfirmPickup = async (requestId: string, textbookId: string, borrowerId: string) => {
     try {
-      const { error: requestError } = await supabase
-        .from("requests")
-        .update({ status: "completed" })
-        .eq("id", requestId);
+      const { error } = await supabase.rpc("transfer_book_ownership", {
+        _request_id: requestId,
+        _textbook_id: textbookId,
+        _new_owner_id: borrowerId,
+      });
 
-      if (requestError) throw requestError;
-
-      const { error: textbookError } = await supabase
-        .from("textbooks")
-        .update({ 
-          owner_id: borrowerId,
-          status: "available"
-        })
-        .eq("id", textbookId);
-
-      if (textbookError) throw textbookError;
+      if (error) throw error;
 
       toast.success("Book ownership transferred successfully!");
       fetchRequests();
     } catch (error: any) {
-      toast.error("Error transferring book ownership");
+      toast.error(error.message || "Error transferring book ownership");
     }
   };
 
