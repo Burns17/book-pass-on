@@ -361,6 +361,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_school_id: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       gtrgm_compress: {
         Args: { "": unknown }
         Returns: unknown
