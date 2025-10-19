@@ -120,9 +120,9 @@ const Auth = () => {
         <CardContent>
           {!isLogin && !verified ? (
             <form onSubmit={handleVerifyStudent} className="space-y-4">
-              <div className="bg-muted p-3 rounded-lg text-sm">
-                <p className="font-medium mb-1">Step 1: Verify Student Eligibility</p>
-                <p className="text-muted-foreground">Enter your Student ID and school email to verify you're registered.</p>
+              <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg text-sm">
+                <p className="font-semibold text-lg mb-2">Step 1 of 2: Verify Student Eligibility</p>
+                <p className="text-muted-foreground">Enter your Student ID and school email to verify you're registered with your school.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="studentId">Student ID Number</Label>
@@ -161,12 +161,18 @@ const Auth = () => {
           ) : (
             <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && verified && (
-                <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-3 rounded-lg text-sm">
-                  <p className="font-medium text-green-900 dark:text-green-100 mb-1">✓ Student Verified</p>
-                  <p className="text-green-700 dark:text-green-300">
-                    {firstName} {lastName} - {email}
-                  </p>
-                </div>
+                <>
+                  <div className="bg-green-50 dark:bg-green-950 border-2 border-green-500 dark:border-green-600 p-4 rounded-lg">
+                    <p className="font-semibold text-lg text-green-900 dark:text-green-100 mb-2">✓ Step 1 Complete - Student Verified!</p>
+                    <p className="text-green-700 dark:text-green-300 mb-3">
+                      {firstName} {lastName} - {email}
+                    </p>
+                  </div>
+                  <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
+                    <p className="font-semibold text-lg mb-1">Step 2 of 2: Create Your Password</p>
+                    <p className="text-sm text-muted-foreground">Choose a secure password for your account (minimum 6 characters).</p>
+                  </div>
+                </>
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">School Email</Label>
@@ -181,16 +187,22 @@ const Auth = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-base font-semibold">
+                  {!isLogin && verified ? "Create Your Password *" : "Password"}
+                </Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Enter your password"
+                  placeholder={!isLogin && verified ? "Create a password (min. 6 characters)" : "Enter your password"}
                   minLength={6}
+                  className="h-12 text-base"
                 />
+                {!isLogin && verified && (
+                  <p className="text-xs text-muted-foreground">Password must be at least 6 characters long</p>
+                )}
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
