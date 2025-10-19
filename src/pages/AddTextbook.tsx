@@ -79,9 +79,9 @@ const AddTextbook = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("textbooks").insert({
+      console.log("Adding textbook with data:", {
         owner_id: user.id,
-        school_id: profile.school_id,
+        school_id: profile?.school_id,
         title,
         author: author || null,
         isbn: isbn || null,
@@ -90,12 +90,28 @@ const AddTextbook = () => {
         status: "available",
       });
 
-      if (error) throw error;
+      const { data, error } = await supabase.from("textbooks").insert({
+        owner_id: user.id,
+        school_id: profile?.school_id || null,
+        title,
+        author: author || null,
+        isbn: isbn || null,
+        edition: edition || null,
+        condition: formData.condition,
+        status: "available",
+      });
 
+      if (error) {
+        console.error("Error inserting textbook:", error);
+        throw error;
+      }
+
+      console.log("Textbook added successfully:", data);
       toast.success("Textbook added.");
       navigate("/my-textbooks");
     } catch (error: any) {
-      toast.error("Error adding textbook");
+      console.error("Caught error:", error);
+      toast.error(`Error adding textbook: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

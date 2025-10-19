@@ -73,22 +73,33 @@ const SchoolLibrary = () => {
   const fetchTextbooks = async () => {
     try {
       setLoading(true);
+      console.log("Fetching all textbooks for school library");
+      
       const { data, error } = await supabase
         .from("textbooks")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      console.log("School library query result:", { data, error });
+
+      if (error) {
+        console.error("Error fetching textbooks:", error);
+        throw error;
+      }
       
       const textbooksData = data || [];
       setAllTextbooks(textbooksData);
 
       // Fetch owner profiles
       const ownerIds = [...new Set(textbooksData.map(t => t.owner_id))];
-      const { data: profilesData } = await supabase
+      console.log("Fetching profiles for owners:", ownerIds);
+      
+      const { data: profilesData, error: profileError } = await supabase
         .from("profiles")
         .select("id, first_name, last_name")
         .in("id", ownerIds);
+
+      console.log("Profiles query result:", { profilesData, profileError });
 
       if (profilesData) {
         const ownersMap = new Map();
@@ -98,7 +109,8 @@ const SchoolLibrary = () => {
         setOwners(ownersMap);
       }
     } catch (error: any) {
-      toast.error("Error loading textbooks");
+      console.error("Caught error in fetchTextbooks:", error);
+      toast.error(`Error loading textbooks: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

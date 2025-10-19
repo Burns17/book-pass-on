@@ -58,16 +58,25 @@ const MyTextbooks = () => {
   const fetchMyTextbooks = async (userId: string) => {
     try {
       setLoading(true);
+      console.log("Fetching textbooks for user:", userId);
+      
       const { data, error } = await supabase
         .from("textbooks")
         .select("*")
         .eq("owner_id", userId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      console.log("Textbooks query result:", { data, error });
+
+      if (error) {
+        console.error("Error fetching textbooks:", error);
+        throw error;
+      }
+      
       setTextbooks(data || []);
     } catch (error: any) {
-      toast.error("Error loading textbooks");
+      console.error("Caught error in fetchMyTextbooks:", error);
+      toast.error(`Error loading textbooks: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
