@@ -17,6 +17,7 @@ const Auth = () => {
   const [studentId, setStudentId] = useState("");
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleVerifyStudent = async (e: React.FormEvent) => {
@@ -60,6 +61,24 @@ const Auth = () => {
       toast.success("Student verified! Please create your password.");
     } catch (error: any) {
       toast.error(error.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent! Check your inbox.");
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reset email");
     } finally {
       setLoading(false);
     }
@@ -118,7 +137,37 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!isLogin && !verified ? (
+          {showForgotPassword ? (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg text-sm">
+                <p className="font-semibold mb-2">Reset Your Password</p>
+                <p className="text-muted-foreground">Enter your email address and we'll send you a password reset link.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">School Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="student@school.com"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+              <div className="mt-4 text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="text-primary hover:underline"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            </form>
+          ) : !isLogin && !verified ? (
             <form onSubmit={handleVerifyStudent} className="space-y-4">
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg text-sm">
                 <p className="font-semibold text-lg mb-2">Step 1 of 2: Verify Student Eligibility</p>
@@ -207,6 +256,17 @@ const Auth = () => {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
               </Button>
+              {isLogin && (
+                <div className="text-center text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
               <div className="mt-4 text-center text-sm">
                 <button
                   type="button"
