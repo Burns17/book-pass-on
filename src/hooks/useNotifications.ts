@@ -26,29 +26,43 @@ export const useNotifications = (userId: string | undefined) => {
           .eq("owner_id", userId);
 
         const myTextbookIds = myTextbooks?.map((t) => t.id) || [];
+        console.log("My textbook IDs:", myTextbookIds);
 
         // Count incoming pending requests (for my books)
         let incomingPending = 0;
         if (myTextbookIds.length > 0) {
-          const { count } = await supabase
+          const { count, error } = await supabase
             .from("requests")
             .select("*", { count: "exact", head: true })
             .in("textbook_id", myTextbookIds)
             .eq("status", "pending");
-          incomingPending = count || 0;
+          
+          if (error) {
+            console.error("Error counting incoming requests:", error);
+          } else {
+            incomingPending = count || 0;
+            console.log("Incoming pending requests:", incomingPending);
+          }
         }
 
         // Count approved requests waiting for my pickup
-        const { count: approvedCount } = await supabase
+        const { count: approvedCount, error: approvedError } = await supabase
           .from("requests")
           .select("*", { count: "exact", head: true })
           .eq("borrower_id", userId)
           .eq("status", "approved");
 
+        if (approvedError) {
+          console.error("Error counting approved requests:", approvedError);
+        }
+
+        const totalPending = incomingPending + (approvedCount || 0);
+        console.log("Total pending notifications:", totalPending);
+
         setCounts({
           incomingPendingRequests: incomingPending,
           approvedRequestsToPickup: approvedCount || 0,
-          totalPending: incomingPending + (approvedCount || 0),
+          totalPending,
         });
       } catch (error) {
         console.error("Error fetching notification counts:", error);
