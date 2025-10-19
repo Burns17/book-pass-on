@@ -107,22 +107,26 @@ const MyRequests = () => {
 
       const myTextbookIds = myTextbooks?.map(t => t.id) || [];
 
-      // Then fetch requests for those textbooks
-      const { data: incoming, error: incomingError } = await supabase
-        .from("requests")
-        .select(`
-          *,
-          textbooks (id, title, author, photo_url, owner_id, status),
-          locations (id, name),
-          profiles!requests_borrower_id_fkey (id, first_name, last_name)
-        `)
-        .in("textbook_id", myTextbookIds)
-        .order("created_at", { ascending: false });
+      let incoming = [];
+      // Only fetch requests if user has textbooks
+      if (myTextbookIds.length > 0) {
+        const { data: incomingData, error: incomingError } = await supabase
+          .from("requests")
+          .select(`
+            *,
+            textbooks (id, title, author, photo_url, owner_id, status),
+            locations (id, name),
+            profiles!requests_borrower_id_fkey (id, first_name, last_name)
+          `)
+          .in("textbook_id", myTextbookIds)
+          .order("created_at", { ascending: false });
 
-      if (incomingError) throw incomingError;
+        if (incomingError) throw incomingError;
+        incoming = incomingData || [];
+      }
 
       setOutgoingRequests(outgoing || []);
-      setIncomingRequests(incoming || []);
+      setIncomingRequests(incoming);
     } catch (error: any) {
       toast.error("Error loading requests");
     } finally {
@@ -312,9 +316,11 @@ const MyRequests = () => {
                                 <p className="text-sm text-muted-foreground">
                                   Requested by: {request.profiles?.first_name} {request.profiles?.last_name}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
-                                  Pickup: {request.locations?.name}
-                                </p>
+                                {request.locations?.name && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Pickup: {request.locations.name}
+                                  </p>
+                                )}
                               </div>
                               <Badge className={getStatusColor(request.status)}>
                                 {request.status}
@@ -367,9 +373,11 @@ const MyRequests = () => {
                             <div className="flex items-start justify-between">
                               <div>
                                 <h3 className="font-semibold text-lg">{request.textbooks?.title}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  Pickup: {request.locations?.name}
-                                </p>
+                                {request.locations?.name && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Pickup: {request.locations.name}
+                                  </p>
+                                )}
                               </div>
                               <Badge className={getStatusColor(request.status)}>
                                 {request.status}
