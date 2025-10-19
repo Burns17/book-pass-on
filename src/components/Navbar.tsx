@@ -65,7 +65,7 @@ const Navbar = ({ user }: NavbarProps) => {
                 <Button variant="ghost">School Library</Button>
               </Link>
               <Link to="/my-textbooks">
-                <Button variant="ghost">My Textbooks</Button>
+                <Button variant="ghost">My Books</Button>
               </Link>
               <Link to="/my-requests">
                 <Button variant="ghost" className="relative">

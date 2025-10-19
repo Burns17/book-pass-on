@@ -136,7 +136,7 @@ const EditTextbook = () => {
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to My Textbooks
+          Back to My Books
         </Button>
 
         <Card className="max-w-2xl mx-auto shadow-[var(--shadow-card)]">
