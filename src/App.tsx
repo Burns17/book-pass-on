@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import AddTextbook from "./pages/AddTextbook";
 import Profile from "./pages/Profile";
 import SeedData from "./pages/SeedData";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/add-textbook" element={<AddTextbook />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/seed-data" element={<SeedData />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

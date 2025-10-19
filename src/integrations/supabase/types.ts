@@ -234,6 +234,50 @@ export type Database = {
         }
         Relationships: []
       }
+      student_registry: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          first_name: string
+          id: string
+          is_active: boolean | null
+          last_name: string
+          school_id: string
+          student_email_address: string
+          student_id_num: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          first_name: string
+          id?: string
+          is_active?: boolean | null
+          last_name: string
+          school_id: string
+          student_email_address: string
+          student_id_num: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          first_name?: string
+          id?: string
+          is_active?: boolean | null
+          last_name?: string
+          school_id?: string
+          student_email_address?: string
+          student_id_num?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_registry_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       textbooks: {
         Row: {
           author: string | null

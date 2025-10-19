@@ -14,8 +14,56 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verified, setVerified] = useState(false);
   const navigate = useNavigate();
+
+  const handleVerifyStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Find school by email domain
+      const emailDomain = email.split('@')[1];
+      const { data: school } = await supabase
+        .from('schools')
+        .select('id')
+        .eq('domain', emailDomain)
+        .maybeSingle();
+
+      if (!school) {
+        toast.error(`Email domain @${emailDomain} is not registered. Please use your official school email.`);
+        setLoading(false);
+        return;
+      }
+
+      // Verify student in registry
+      const { data: student, error } = await supabase
+        .from('student_registry')
+        .select('*')
+        .eq('student_id_num', studentId)
+        .eq('student_email_address', email)
+        .eq('school_id', school.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error || !student) {
+        toast.error("We couldn't verify your Student ID and email. Please contact your school admin.");
+        setLoading(false);
+        return;
+      }
+
+      setFirstName(student.first_name);
+      setLastName(student.last_name);
+      setVerified(true);
+      toast.success("Student verified! Please create your password.");
+    } catch (error: any) {
+      toast.error(error.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,20 +79,6 @@ const Auth = () => {
         toast.success("Signed in successfully!");
         navigate("/dashboard");
       } else {
-        // Validate email domain matches a registered school
-        const emailDomain = email.split('@')[1];
-        const { data: school, error: schoolError } = await supabase
-          .from('schools')
-          .select('id, name')
-          .eq('domain', emailDomain)
-          .single();
-
-        if (schoolError || !school) {
-          toast.error(`Email domain @${emailDomain} is not registered with any school. Please use your school email address.`);
-          setLoading(false);
-          return;
-        }
-
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -59,6 +93,8 @@ const Auth = () => {
         if (error) throw error;
         toast.success("Account created! You can now sign in.");
         setIsLogin(true);
+        setVerified(false);
+        setStudentId("");
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
@@ -82,67 +118,98 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required={!isLogin}
-                    placeholder="Enter your first name"
-                  />
+          {!isLogin && !verified ? (
+            <form onSubmit={handleVerifyStudent} className="space-y-4">
+              <div className="bg-muted p-3 rounded-lg text-sm">
+                <p className="font-medium mb-1">Step 1: Verify Student Eligibility</p>
+                <p className="text-muted-foreground">Enter your Student ID and school email to verify you're registered.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="studentId">Student ID Number</Label>
+                <Input
+                  id="studentId"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  required
+                  placeholder="Enter your student ID"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Student Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="student@school.com"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Verifying..." : "Verify Eligibility"}
+              </Button>
+              <div className="mt-4 text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(true)}
+                  className="text-primary hover:underline"
+                >
+                  Already have an account? Sign in
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleAuth} className="space-y-4">
+              {!isLogin && verified && (
+                <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-3 rounded-lg text-sm">
+                  <p className="font-medium text-green-900 dark:text-green-100 mb-1">✓ Student Verified</p>
+                  <p className="text-green-700 dark:text-green-300">
+                    {firstName} {lastName} - {email}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required={!isLogin}
-                    placeholder="Enter your last name"
-                  />
-                </div>
-              </>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">School Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="student@school.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Enter your password"
-                minLength={6}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline"
-            >
-              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
-            </button>
-          </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">School Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="student@school.com"
+                  disabled={!isLogin && verified}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Enter your password"
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
+              </Button>
+              <div className="mt-4 text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setVerified(false);
+                    setStudentId("");
+                  }}
+                  className="text-primary hover:underline"
+                >
+                  {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+                </button>
+              </div>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
