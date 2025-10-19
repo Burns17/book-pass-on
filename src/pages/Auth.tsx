@@ -34,15 +34,33 @@ const Auth = () => {
       }
     });
 
-    // Check if already logged in
-    const checkSession = async () => {
+    // Auto-login as demo admin for demo purposes
+    const autoLoginAdmin = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      
+      // If no session exists, automatically sign in as demo admin
+      if (!session?.user) {
+        try {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: 'MarkSmith@admin.com',
+            password: 'demo123', // Demo password for admin
+          });
+          
+          if (!error) {
+            toast.success("Auto-signed in as Demo Admin");
+            navigate('/dashboard');
+          }
+        } catch (error) {
+          // Silently fail if auto-login doesn't work
+          console.log("Auto-login not available");
+        }
+      } else {
+        // Already logged in, go to dashboard
         navigate('/dashboard');
       }
     };
 
-    checkSession();
+    autoLoginAdmin();
 
     return () => {
       subscription.unsubscribe();
