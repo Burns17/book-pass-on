@@ -36,8 +36,6 @@ const SchoolLibrary = () => {
   const [loading, setLoading] = useState(true);
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const [selectedTextbook, setSelectedTextbook] = useState<string | null>(null);
-  const [locations, setLocations] = useState<any[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [owners, setOwners] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
@@ -66,7 +64,6 @@ const SchoolLibrary = () => {
   useEffect(() => {
     if (user) {
       fetchTextbooks();
-      fetchLocations();
     }
   }, [user]);
 
@@ -147,17 +144,6 @@ const SchoolLibrary = () => {
     return filtered;
   }, [searchQuery, conditionFilter, statusFilter, allTextbooks, fuse]);
 
-  const fetchLocations = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("locations")
-        .select("*");
-      if (error) throw error;
-      setLocations(data || []);
-    } catch (error: any) {
-      console.error("Error loading locations:", error);
-    }
-  };
 
   const handleRequest = (textbookId: string) => {
     setSelectedTextbook(textbookId);
@@ -165,16 +151,12 @@ const SchoolLibrary = () => {
   };
 
   const submitRequest = async () => {
-    if (!selectedTextbook || !selectedLocation) {
-      toast.error("Please select a pickup location");
-      return;
-    }
+    if (!selectedTextbook) return;
 
     try {
       const { error } = await supabase.from("requests").insert({
         borrower_id: user.id,
         textbook_id: selectedTextbook,
-        location_id: selectedLocation,
         status: "pending",
       });
 
@@ -183,7 +165,6 @@ const SchoolLibrary = () => {
       toast.success("Request sent successfully!");
       setRequestDialogOpen(false);
       setSelectedTextbook(null);
-      setSelectedLocation("");
       fetchTextbooks();
     } catch (error: any) {
       toast.error("Error sending request");
@@ -363,25 +344,13 @@ const SchoolLibrary = () => {
           <DialogHeader>
             <DialogTitle>Request Textbook</DialogTitle>
             <DialogDescription>
-              Choose a pickup location to complete your request
+              Send a request to the book owner
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="location">Pickup Location</Label>
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations.map((location) => (
-                    <SelectItem key={location.id} value={location.id}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              The owner will review your request and provide a pickup location if approved.
+            </p>
             <Button onClick={submitRequest} className="w-full">
               Send Request
             </Button>

@@ -16,6 +16,14 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const MyRequests = () => {
   const navigate = useNavigate();
@@ -27,6 +35,9 @@ const MyRequests = () => {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
 
   useEffect(() => {
     const checkUser = async () => {
@@ -52,8 +63,21 @@ const MyRequests = () => {
   useEffect(() => {
     if (user) {
       fetchRequests();
+      fetchLocations();
     }
   }, [user]);
+
+  const fetchLocations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("locations")
+        .select("*");
+      if (error) throw error;
+      setLocations(data || []);
+    } catch (error: any) {
+      console.error("Error loading locations:", error);
+    }
+  };
 
   const fetchRequests = async () => {
     try {
@@ -73,15 +97,26 @@ const MyRequests = () => {
       if (outgoingError) throw outgoingError;
 
       // Fetch incoming requests (requests for my books)
+      // First get my textbook IDs
+      const { data: myTextbooks, error: textbooksError } = await supabase
+        .from("textbooks")
+        .select("id")
+        .eq("owner_id", user.id);
+
+      if (textbooksError) throw textbooksError;
+
+      const myTextbookIds = myTextbooks?.map(t => t.id) || [];
+
+      // Then fetch requests for those textbooks
       const { data: incoming, error: incomingError } = await supabase
         .from("requests")
         .select(`
           *,
-          textbooks!inner (id, title, author, photo_url, owner_id, status),
+          textbooks (id, title, author, photo_url, owner_id, status),
           locations (id, name),
           profiles!requests_borrower_id_fkey (id, first_name, last_name)
         `)
-        .eq("textbooks.owner_id", user.id)
+        .in("textbook_id", myTextbookIds)
         .order("created_at", { ascending: false });
 
       if (incomingError) throw incomingError;
@@ -95,16 +130,42 @@ const MyRequests = () => {
     }
   };
 
-  const handleApproveRequest = async (requestId: string) => {
+  const openApproveDialog = (request: any) => {
+    setSelectedRequest(request);
+    setApproveDialogOpen(true);
+  };
+
+  const handleApproveRequest = async () => {
+    if (!selectedLocation || !selectedRequest) {
+      toast.error("Please select a pickup location");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("requests")
-        .update({ status: "approved" })
-        .eq("id", requestId);
+        .update({ 
+          status: "approved",
+          location_id: selectedLocation 
+        })
+        .eq("id", selectedRequest.id);
 
       if (error) throw error;
 
-      toast.success("Request approved!");
+      // Send message with pickup location
+      const location = locations.find(l => l.id === selectedLocation);
+      await supabase
+        .from("messages")
+        .insert({
+          request_id: selectedRequest.id,
+          from_id: user.id,
+          body: `Your request has been approved! Please pick up the book at: ${location?.name}`,
+        });
+
+      toast.success("Request approved and pickup location sent!");
+      setApproveDialogOpen(false);
+      setSelectedRequest(null);
+      setSelectedLocation("");
       fetchRequests();
     } catch (error: any) {
       toast.error("Error approving request");
@@ -262,7 +323,7 @@ const MyRequests = () => {
                             <div className="flex gap-2">
                               {request.status === "pending" && (
                                 <>
-                                  <Button size="sm" onClick={() => handleApproveRequest(request.id)}>
+                                  <Button size="sm" onClick={() => openApproveDialog(request)}>
                                     Approve
                                   </Button>
                                   <Button size="sm" variant="outline" onClick={() => handleRejectRequest(request.id)}>
@@ -340,6 +401,37 @@ const MyRequests = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Request</DialogTitle>
+            <DialogDescription>
+              Select where the borrower can pick up the book
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Pickup Location</Label>
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleApproveRequest} className="w-full">
+              Approve & Send Location
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
         <DialogContent className="max-w-2xl">
