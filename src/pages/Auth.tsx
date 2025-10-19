@@ -26,29 +26,42 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // DEMO MODE: Auto-login as admin immediately
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Redirect to dashboard on successful login
+        navigate('/dashboard');
+      }
+    });
+
+    // Auto-login as demo admin for demo purposes
     const autoLoginAdmin = async () => {
-      setLoading(true);
-      
-      // Sign out any existing session first
+      // First, sign out any existing session
       await supabase.auth.signOut();
       
-      // Sign in as Mark Smith admin for demo
-      const { error } = await supabase.auth.signInWithPassword({
-        email: 'admin@school.com',
-        password: 'admin123',
-      });
-      
-      if (!error) {
-        toast.success("Logged in as Mark Smith (Admin Demo)");
-        navigate('/admin');
-      } else {
-        toast.error("Demo admin login failed - please set password to 'admin123'");
-        setLoading(false);
+      // Then sign in as demo admin (Mark Smith)
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: 'admin@school.com',
+          password: 'admin123', // Demo password for Mark Smith admin
+        });
+        
+        if (!error) {
+          toast.success("Auto-signed in as Demo Admin (Mark Smith)");
+          navigate('/dashboard');
+        } else {
+          console.error("Auto-login failed:", error.message);
+        }
+      } catch (error) {
+        console.error("Auto-login error:", error);
       }
     };
 
     autoLoginAdmin();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleVerifyStudent = async (e: React.FormEvent) => {

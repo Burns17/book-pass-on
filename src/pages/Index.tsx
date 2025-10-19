@@ -10,8 +10,15 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // DEMO MODE: Auto-redirect to admin login
-    window.location.href = '/auth';
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
