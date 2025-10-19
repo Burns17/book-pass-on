@@ -55,19 +55,21 @@ export const BulkImportDialog = ({ open, onOpenChange, onSuccess }: BulkImportDi
         const schoolName = row["SCHOOL NAME"] || row["SCHOOL"] || row["school"];
         const schoolDomain = row["SCHOOL DOMAIN"] || row["DOMAIN"] || row["domain"];
 
-        if (!schoolName || !schoolDomain) {
-          throw new Error("Missing SCHOOL NAME or SCHOOL DOMAIN columns in CSV");
+        if (!schoolName) {
+          throw new Error("Missing SCHOOL or SCHOOL NAME column in CSV");
         }
 
+        // Try to find school by name first
         const { data: existingSchool } = await supabase
           .from("schools")
           .select("id")
-          .eq("domain", schoolDomain)
+          .ilike("name", schoolName)
           .maybeSingle();
 
         if (existingSchool) {
           schoolId = existingSchool.id;
-        } else {
+        } else if (schoolDomain) {
+          // Create new school only if domain is provided
           const { data: newSchool, error: schoolError } = await supabase
             .from("schools")
             .insert({ name: schoolName, domain: schoolDomain })
@@ -76,6 +78,8 @@ export const BulkImportDialog = ({ open, onOpenChange, onSuccess }: BulkImportDi
 
           if (schoolError) throw schoolError;
           schoolId = newSchool.id;
+        } else {
+          throw new Error(`School "${schoolName}" not found. Please add SCHOOL DOMAIN column or create the school first.`);
         }
 
         // Insert student
@@ -114,7 +118,7 @@ export const BulkImportDialog = ({ open, onOpenChange, onSuccess }: BulkImportDi
         <DialogHeader>
           <DialogTitle>Bulk Import Students</DialogTitle>
           <DialogDescription>
-            Upload a CSV file with columns: STUDENT ID NUM, FIRST NAME, LAST NAME, STUDENT EMAIL ADDRESS, SCHOOL NAME (or SCHOOL), SCHOOL DOMAIN (or DOMAIN), IS ACTIVE
+            Upload a CSV with: STUDENT ID NUM, FIRST NAME, LAST NAME, STUDENT EMAIL ADDRESS, SCHOOL (or SCHOOL NAME), IS ACTIVE. Add SCHOOL DOMAIN if creating new schools.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
