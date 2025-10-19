@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
-const AddTextbook = () => {
+const EditTextbook = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchingData, setFetchingData] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -37,18 +38,40 @@ const AddTextbook = () => {
         return;
       }
       setUser(session.user);
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-      
-      setProfile(profileData);
+      await fetchTextbook(session.user.id);
     };
 
     checkUser();
-  }, [navigate]);
+  }, [navigate, id]);
+
+  const fetchTextbook = async (userId: string) => {
+    try {
+      setFetchingData(true);
+      const { data, error } = await supabase
+        .from("textbooks")
+        .select("*")
+        .eq("id", id)
+        .eq("owner_id", userId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setFormData({
+          title: data.title || "",
+          author: data.author || "",
+          isbn: data.isbn || "",
+          edition: data.edition || "",
+          condition: data.condition || "",
+        });
+      }
+    } catch (error: any) {
+      toast.error("Error loading textbook or you don't have permission");
+      navigate("/my-textbooks");
+    } finally {
+      setFetchingData(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,29 +102,29 @@ const AddTextbook = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("textbooks").insert({
-        owner_id: user.id,
-        school_id: profile.school_id,
-        title,
-        author: author || null,
-        isbn: isbn || null,
-        edition: edition || null,
-        condition: formData.condition,
-        status: "available",
-      });
+      const { error } = await supabase
+        .from("textbooks")
+        .update({
+          title,
+          author: author || null,
+          isbn: isbn || null,
+          edition: edition || null,
+          condition: formData.condition,
+        })
+        .eq("id", id);
 
       if (error) throw error;
 
-      toast.success("Textbook added.");
+      toast.success("Changes saved.");
       navigate("/my-textbooks");
     } catch (error: any) {
-      toast.error("Error adding textbook");
+      toast.error("Error updating textbook");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) return null;
+  if (!user || fetchingData) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,9 +141,9 @@ const AddTextbook = () => {
 
         <Card className="max-w-2xl mx-auto shadow-[var(--shadow-card)]">
           <CardHeader>
-            <CardTitle className="text-3xl">Add a Textbook</CardTitle>
+            <CardTitle className="text-3xl">Edit Textbook</CardTitle>
             <CardDescription>
-              Share your textbook with other students at your school
+              Update your textbook information
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -148,13 +171,12 @@ const AddTextbook = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="isbn">ISBN *</Label>
+                  <Label htmlFor="isbn">ISBN</Label>
                   <Input
                     id="isbn"
                     value={formData.isbn}
                     onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
                     placeholder="e.g., 978-1285741550"
-                    required
                   />
                   <p className="text-xs text-muted-foreground">
                     You'll find the ISBN near the barcode on the back.
@@ -192,7 +214,7 @@ const AddTextbook = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Adding..." : "Add Textbook"}
+                {loading ? "Saving..." : "Save Changes"}
               </Button>
             </form>
           </CardContent>
@@ -202,4 +224,4 @@ const AddTextbook = () => {
   );
 };
 
-export default AddTextbook;
+export default EditTextbook;

@@ -6,7 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import SchoolLibrary from "./pages/SchoolLibrary";
+import MyTextbooks from "./pages/MyTextbooks";
 import AddTextbook from "./pages/AddTextbook";
+import EditTextbook from "./pages/EditTextbook";
 import Profile from "./pages/Profile";
 import SeedData from "./pages/SeedData";
 import Admin from "./pages/Admin";
@@ -24,7 +27,10 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/school-library" element={<SchoolLibrary />} />
+          <Route path="/my-textbooks" element={<MyTextbooks />} />
           <Route path="/add-textbook" element={<AddTextbook />} />
+          <Route path="/edit-textbook/:id" element={<EditTextbook />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/seed-data" element={<SeedData />} />
           <Route path="/admin" element={<Admin />} />

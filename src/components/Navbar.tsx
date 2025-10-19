@@ -49,21 +49,21 @@ const Navbar = ({ user }: NavbarProps) => {
   return (
     <nav className="border-b bg-card">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 font-semibold text-lg">
+        <Link to={user ? "/school-library" : "/"} className="flex items-center gap-2 font-semibold text-lg">
           <div className="rounded-full bg-gradient-to-br from-primary to-secondary p-2">
             <BookOpen className="h-5 w-5 text-primary-foreground" />
           </div>
           Pass It On
         </Link>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           {user ? (
             <>
-              <Link to="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
+              <Link to="/school-library">
+                <Button variant="ghost">School Library</Button>
               </Link>
-              <Link to="/add-textbook">
-                <Button variant="ghost">Add Textbook</Button>
+              <Link to="/my-textbooks">
+                <Button variant="ghost">My Textbooks</Button>
               </Link>
               {isAdmin && (
                 <Link to="/admin">

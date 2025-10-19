@@ -42,9 +42,9 @@ const Index = () => {
                 Save money and help others succeed.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link to={user ? "/dashboard" : "/auth"}>
+                <Link to={user ? "/school-library" : "/auth"}>
                   <Button size="lg" className="text-lg px-8">
-                    {user ? "Go to Dashboard" : "Get Started"}
+                    {user ? "Go to School Library" : "Get Started"}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -132,7 +132,7 @@ const Index = () => {
             <p className="text-xl text-muted-foreground">
               Join your school community and make textbooks accessible for everyone
             </p>
-            <Link to={user ? "/add-textbook" : "/auth"}>
+            <Link to={user ? "/my-textbooks" : "/auth"}>
               <Button size="lg" className="text-lg px-12">
                 {user ? "List Your First Textbook" : "Create Your Account"}
                 <ArrowRight className="ml-2 h-5 w-5" />

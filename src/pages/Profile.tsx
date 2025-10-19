@@ -144,11 +144,11 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8">
         <Button
           variant="ghost"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/school-library")}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
+          Back to School Library
         </Button>
 
         <div className="max-w-4xl mx-auto space-y-8">
