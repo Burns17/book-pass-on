@@ -36,27 +36,24 @@ const Auth = () => {
 
     // Auto-login as demo admin for demo purposes
     const autoLoginAdmin = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      // First, sign out any existing session
+      await supabase.auth.signOut();
       
-      // If no session exists, automatically sign in as demo admin
-      if (!session?.user) {
-        try {
-          const { error } = await supabase.auth.signInWithPassword({
-            email: 'MarkSmith@admin.com',
-            password: 'demo123', // Demo password for admin
-          });
-          
-          if (!error) {
-            toast.success("Auto-signed in as Demo Admin");
-            navigate('/dashboard');
-          }
-        } catch (error) {
-          // Silently fail if auto-login doesn't work
-          console.log("Auto-login not available");
+      // Then sign in as demo admin (Mark Smith)
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: 'admin@school.com',
+          password: 'admin123', // Demo password for Mark Smith admin
+        });
+        
+        if (!error) {
+          toast.success("Auto-signed in as Demo Admin (Mark Smith)");
+          navigate('/dashboard');
+        } else {
+          console.error("Auto-login failed:", error.message);
         }
-      } else {
-        // Already logged in, go to dashboard
-        navigate('/dashboard');
+      } catch (error) {
+        console.error("Auto-login error:", error);
       }
     };
 
