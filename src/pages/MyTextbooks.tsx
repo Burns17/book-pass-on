@@ -234,7 +234,7 @@ const MyTextbooks = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="lent">Lent</SelectItem>
+                      <SelectItem value="lent">Unavailable</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button

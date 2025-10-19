@@ -269,7 +269,7 @@ const SchoolLibrary = () => {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="available">Available Only</SelectItem>
-                <SelectItem value="lent">Lent</SelectItem>
+                <SelectItem value="lent">Unavailable</SelectItem>
               </SelectContent>
             </Select>
           </div>
