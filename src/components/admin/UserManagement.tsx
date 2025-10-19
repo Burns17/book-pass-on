@@ -40,24 +40,34 @@ export const UserManagement = () => {
 
   const toggleUserRole = async (userId: string, currentRole: string) => {
     try {
+      console.log("Toggling role for user:", userId, "Current role:", currentRole);
       const newRole = currentRole === "admin" ? "student" : "admin";
+      console.log("New role will be:", newRole);
 
       // Delete old role
-      await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", currentRole as "admin" | "student" | "moderator");
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", currentRole as "admin" | "student" | "moderator");
+
+      console.log("Delete result:", { deleteError });
+      if (deleteError) throw deleteError;
 
       // Insert new role
-      const { error } = await supabase.from("user_roles").insert({
+      const { error: insertError } = await supabase.from("user_roles").insert({
         user_id: userId,
         role: newRole as "admin" | "student" | "moderator",
       });
 
-      if (error) throw error;
+      console.log("Insert result:", { insertError });
+      if (insertError) throw insertError;
 
       toast.success(`User role updated to ${newRole}`);
       fetchUsers();
     } catch (error: any) {
       console.error("Error updating role:", error);
-      toast.error("Failed to update user role");
+      toast.error("Failed to update user role: " + error.message);
     }
   };
 
