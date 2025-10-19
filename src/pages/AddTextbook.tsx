@@ -52,12 +52,6 @@ const AddTextbook = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!profile?.school_id) {
-      toast.error("Please complete your profile first");
-      navigate("/profile");
-      return;
-    }
 
     // Validate inputs
     const title = formData.title.trim();
@@ -99,7 +93,7 @@ const AddTextbook = () => {
       if (error) throw error;
 
       toast.success("Textbook added successfully!");
-      navigate("/dashboard");
+      navigate("/profile");
     } catch (error: any) {
       toast.error("Error adding textbook");
     } finally {
