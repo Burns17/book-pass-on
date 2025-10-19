@@ -128,7 +128,7 @@ function parseCSV(csv: string): StudentRecord[] {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       email: email.trim(),
-      password: id.trim(), // Use student ID as password
+      password: '1' + id.trim(), // Add "1" in front of student ID for password
     });
   }
   
@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
       try {
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
           email: student.email,
-          password: student.id.toString(),
+          password: student.password,
           email_confirm: true,
           user_metadata: {
             first_name: student.firstName,
