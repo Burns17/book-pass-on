@@ -20,47 +20,29 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth listener first
+    // Set up auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, 'Session:', session);
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        console.log('PASSWORD_RECOVERY event detected');
-        setIsResettingPassword(true);
-        toast.info("Please enter your new password");
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Redirect to dashboard on successful login
+        navigate('/dashboard');
       }
     });
 
-    // Check URL hash and current session
-    const initializeAuth = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const type = hashParams.get('type');
-      const accessToken = hashParams.get('access_token');
-      
-      console.log('URL hash check - type:', type, 'has token:', !!accessToken);
-
-      // Check if we're in recovery mode from URL
-      if (type === 'recovery') {
-        console.log('Recovery type detected in URL');
-        setIsResettingPassword(true);
-        toast.info("Please enter your new password");
-        return;
-      }
-
-      // Also check current session state
+    // Check if already logged in
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('Current session check:', session);
-      
-      // If logged in, redirect to dashboard
-      if (session?.user && !type) {
+      if (session?.user) {
         navigate('/dashboard');
       }
     };
 
-    initializeAuth();
+    checkSession();
 
     return () => {
       subscription.unsubscribe();
@@ -118,36 +100,50 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
-      toast.success("Password reset email sent! Check your inbox.");
-      setShowForgotPassword(false);
+      
+      setResetEmail(email);
+      setOtpSent(true);
+      toast.success("Password reset code sent! Check your email for a 6-digit code.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to send reset email");
+      toast.error(error.message || "Failed to send reset code");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
+  const handleVerifyOtpAndReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      // Verify the OTP code
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: resetEmail,
+        token: otpCode,
+        type: 'recovery',
+      });
+      
+      if (verifyError) throw verifyError;
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
-      if (error) throw error;
+      
+      if (updateError) throw updateError;
+
       toast.success("Password updated successfully! Please sign in.");
-      setIsResettingPassword(false);
-      setIsLogin(true);
+      // Reset all states
+      setShowForgotPassword(false);
+      setOtpSent(false);
+      setOtpCode("");
       setNewPassword("");
-      // Clear the hash from URL
-      window.history.replaceState(null, "", window.location.pathname);
+      setResetEmail("");
+      setIsLogin(true);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update password");
+      toast.error(error.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -206,11 +202,27 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isResettingPassword ? (
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
+          {showForgotPassword && otpSent ? (
+            <form onSubmit={handleVerifyOtpAndReset} className="space-y-4">
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg text-sm">
-                <p className="font-semibold mb-2">Set New Password</p>
-                <p className="text-muted-foreground">Enter your new password below (minimum 6 characters).</p>
+                <p className="font-semibold mb-2">Enter Reset Code & New Password</p>
+                <p className="text-muted-foreground">
+                  We sent a 6-digit code to <strong>{resetEmail}</strong>. Enter it below along with your new password.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="otp-code">6-Digit Code</Label>
+                <Input
+                  id="otp-code"
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  required
+                  placeholder="000000"
+                  maxLength={6}
+                  pattern="[0-9]{6}"
+                  className="h-12 text-base text-center tracking-widest"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
@@ -227,14 +239,28 @@ const Auth = () => {
                 <p className="text-xs text-muted-foreground">Password must be at least 6 characters long</p>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Updating..." : "Update Password"}
+                {loading ? "Resetting..." : "Reset Password"}
               </Button>
+              <div className="mt-4 text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setOtpSent(false);
+                    setOtpCode("");
+                    setNewPassword("");
+                  }}
+                  className="text-primary hover:underline"
+                >
+                  Back to Sign In
+                </button>
+              </div>
             </form>
           ) : showForgotPassword ? (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg text-sm">
                 <p className="font-semibold mb-2">Reset Your Password</p>
-                <p className="text-muted-foreground">Enter your email address and we'll send you a password reset link.</p>
+                <p className="text-muted-foreground">Enter your email address and we'll send you a 6-digit reset code.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="reset-email">School Email</Label>
@@ -248,7 +274,7 @@ const Auth = () => {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending..." : "Send Reset Link"}
+                {loading ? "Sending..." : "Send Reset Code"}
               </Button>
               <div className="mt-4 text-center text-sm">
                 <button
