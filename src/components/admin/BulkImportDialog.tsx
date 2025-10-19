@@ -50,12 +50,19 @@ export const BulkImportDialog = ({ open, onOpenChange, onSuccess }: BulkImportDi
 
       // Process each row
       for (const row of rows) {
-        // Find or create school
+        // Find school - support multiple column name variations
         let schoolId;
+        const schoolName = row["SCHOOL NAME"] || row["SCHOOL"] || row["school"];
+        const schoolDomain = row["SCHOOL DOMAIN"] || row["DOMAIN"] || row["domain"];
+
+        if (!schoolName || !schoolDomain) {
+          throw new Error("Missing SCHOOL NAME or SCHOOL DOMAIN columns in CSV");
+        }
+
         const { data: existingSchool } = await supabase
           .from("schools")
           .select("id")
-          .eq("domain", row["SCHOOL DOMAIN"])
+          .eq("domain", schoolDomain)
           .maybeSingle();
 
         if (existingSchool) {
@@ -63,7 +70,7 @@ export const BulkImportDialog = ({ open, onOpenChange, onSuccess }: BulkImportDi
         } else {
           const { data: newSchool, error: schoolError } = await supabase
             .from("schools")
-            .insert({ name: row["SCHOOL NAME"], domain: row["SCHOOL DOMAIN"] })
+            .insert({ name: schoolName, domain: schoolDomain })
             .select()
             .single();
 
@@ -107,7 +114,7 @@ export const BulkImportDialog = ({ open, onOpenChange, onSuccess }: BulkImportDi
         <DialogHeader>
           <DialogTitle>Bulk Import Students</DialogTitle>
           <DialogDescription>
-            Upload a CSV file with columns: STUDENT ID NUM, FIRST NAME, LAST NAME, STUDENT EMAIL ADDRESS, SCHOOL NAME, SCHOOL DOMAIN, IS ACTIVE
+            Upload a CSV file with columns: STUDENT ID NUM, FIRST NAME, LAST NAME, STUDENT EMAIL ADDRESS, SCHOOL NAME (or SCHOOL), SCHOOL DOMAIN (or DOMAIN), IS ACTIVE
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
