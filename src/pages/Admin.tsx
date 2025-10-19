@@ -82,9 +82,11 @@ const Admin = () => {
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="pending">Pending Actions</TabsTrigger>
+            <TabsTrigger value="pending" className="relative">
+              Pending Actions
+            </TabsTrigger>
             <TabsTrigger value="registry">Student Registry</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 

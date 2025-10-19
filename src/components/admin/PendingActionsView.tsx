@@ -104,7 +104,14 @@ export const PendingActionsView = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Users with Pending Actions</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Users with Pending Actions
+          {users.length > 0 && (
+            <Badge variant="destructive">
+              {users.length}
+            </Badge>
+          )}
+        </CardTitle>
         <CardDescription>
           {users.length} {users.length === 1 ? "member has" : "members have"} actions to complete
         </CardDescription>
