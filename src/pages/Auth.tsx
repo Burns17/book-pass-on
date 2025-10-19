@@ -23,7 +23,30 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for auth state changes to detect recovery session
+    // Check for recovery tokens in URL hash immediately
+    const checkRecoverySession = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+      
+      console.log('Checking recovery - type:', type, 'hasToken:', !!accessToken);
+      
+      // If we have recovery tokens, exchange them for a session
+      if (type === 'recovery' && accessToken) {
+        try {
+          // This will trigger the PASSWORD_RECOVERY event
+          await supabase.auth.getSession();
+          setIsResettingPassword(true);
+          toast.info("Please enter your new password");
+        } catch (error) {
+          console.error('Recovery session error:', error);
+        }
+      }
+    };
+    
+    checkRecoverySession();
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth event:', event, 'Session:', session);
       
@@ -32,19 +55,6 @@ const Auth = () => {
         toast.info("Please enter your new password");
       }
     });
-
-    // Also check URL hash on mount
-    const checkRecoveryHash = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const type = hashParams.get('type');
-      
-      if (type === 'recovery') {
-        setIsResettingPassword(true);
-        toast.info("Please enter your new password");
-      }
-    };
-    
-    checkRecoveryHash();
 
     return () => {
       subscription.unsubscribe();
