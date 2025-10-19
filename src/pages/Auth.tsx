@@ -23,43 +23,49 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for recovery tokens in URL hash immediately
-    const checkRecoverySession = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
-      
-      console.log('Checking recovery - type:', type, 'hasToken:', !!accessToken);
-      
-      // If we have recovery tokens, exchange them for a session
-      if (type === 'recovery' && accessToken) {
-        try {
-          // This will trigger the PASSWORD_RECOVERY event
-          await supabase.auth.getSession();
-          setIsResettingPassword(true);
-          toast.info("Please enter your new password");
-        } catch (error) {
-          console.error('Recovery session error:', error);
-        }
-      }
-    };
-    
-    checkRecoverySession();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Set up auth listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, 'Session:', session);
       
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('PASSWORD_RECOVERY event detected');
         setIsResettingPassword(true);
         toast.info("Please enter your new password");
       }
     });
 
+    // Check URL hash and current session
+    const initializeAuth = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      console.log('URL hash check - type:', type, 'has token:', !!accessToken);
+
+      // Check if we're in recovery mode from URL
+      if (type === 'recovery') {
+        console.log('Recovery type detected in URL');
+        setIsResettingPassword(true);
+        toast.info("Please enter your new password");
+        return;
+      }
+
+      // Also check current session state
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session check:', session);
+      
+      // If logged in, redirect to dashboard
+      if (session?.user && !type) {
+        navigate('/dashboard');
+      }
+    };
+
+    initializeAuth();
+
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleVerifyStudent = async (e: React.FormEvent) => {
     e.preventDefault();
