@@ -154,6 +154,28 @@ const SchoolLibrary = () => {
     if (!selectedTextbook) return;
 
     try {
+      // Check for existing pending or approved requests for this textbook
+      const { data: existingRequests, error: checkError } = await supabase
+        .from("requests")
+        .select("id, status")
+        .eq("borrower_id", user.id)
+        .eq("textbook_id", selectedTextbook)
+        .in("status", ["pending", "approved"]);
+
+      if (checkError) throw checkError;
+
+      if (existingRequests && existingRequests.length > 0) {
+        const status = existingRequests[0].status;
+        toast.error(
+          status === "approved" 
+            ? "You already have an approved request for this book. Please pick it up before requesting again."
+            : "You already have a pending request for this book."
+        );
+        setRequestDialogOpen(false);
+        setSelectedTextbook(null);
+        return;
+      }
+
       const { error } = await supabase.from("requests").insert({
         borrower_id: user.id,
         textbook_id: selectedTextbook,
