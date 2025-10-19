@@ -10,6 +10,7 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { StudentRegistry } from "@/components/admin/StudentRegistry";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { ReportsManagement } from "@/components/admin/ReportsManagement";
+import { PendingActionsView } from "@/components/admin/PendingActionsView";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -79,8 +80,9 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="pending">Pending Actions</TabsTrigger>
             <TabsTrigger value="registry">Student Registry</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -88,6 +90,10 @@ const Admin = () => {
 
           <TabsContent value="dashboard">
             <AdminDashboard />
+          </TabsContent>
+
+          <TabsContent value="pending">
+            <PendingActionsView />
           </TabsContent>
 
           <TabsContent value="registry">

@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface NavbarProps {
   user?: any;
@@ -18,6 +19,7 @@ interface NavbarProps {
 const Navbar = ({ user }: NavbarProps) => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const notifications = useNotifications(user?.id);
 
   useEffect(() => {
     if (user) {
@@ -66,7 +68,14 @@ const Navbar = ({ user }: NavbarProps) => {
                 <Button variant="ghost">My Textbooks</Button>
               </Link>
               <Link to="/my-requests">
-                <Button variant="ghost">Requests</Button>
+                <Button variant="ghost" className="relative">
+                  Requests
+                  {notifications.totalPending > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                      {notifications.totalPending}
+                    </span>
+                  )}
+                </Button>
               </Link>
               {isAdmin && (
                 <Link to="/admin">
