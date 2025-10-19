@@ -288,7 +288,7 @@ export type Database = {
           isbn: string | null
           owner_id: string
           photo_url: string | null
-          school_id: string
+          school_id: string | null
           status: string | null
           title: string
         }
@@ -301,7 +301,7 @@ export type Database = {
           isbn?: string | null
           owner_id: string
           photo_url?: string | null
-          school_id: string
+          school_id?: string | null
           status?: string | null
           title: string
         }
@@ -314,7 +314,7 @@ export type Database = {
           isbn?: string | null
           owner_id?: string
           photo_url?: string | null
-          school_id?: string
+          school_id?: string | null
           status?: string | null
           title?: string
         }
