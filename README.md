@@ -1,73 +1,54 @@
-# Welcome to your Lovable project
+# 📚 Book Pass-On
 
-## Project info
+*A simple way for students to share textbooks and help each other succeed.*
 
-**URL**: https://lovable.dev/projects/a8c691db-b2e1-4d45-91dd-7032d4ac6099
+## 🌟 Overview
 
-## How can I edit this code?
+**Book Pass-On** is a community-based web app that lets high school students easily share textbooks with each other. Whether you’re missing a math book, need an English novel, or want to lend your extra copy — this platform makes it easy to find and share books within your school community.
 
-There are several ways of editing your application.
+## 🎯 How It Works
 
-**Use Lovable**
+1. **Search for a book** – Type in the title or subject to see if it’s available.
+2. **Check availability** – The system instantly tells you if another student has added that textbook.
+3. **Add your own books** – Got a spare? Share it! Other students can then find and request it.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a8c691db-b2e1-4d45-91dd-7032d4ac6099) and start prompting.
+You can try it live here 👉 [**Book Pass-On Website**](https://book-pass-on.lovable.app/)
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## 🔐 Demo Accounts
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 👑 Admin Account
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* **Username:** `steveburns398@gmail.com`
+* **Password:** `Testing123`
 
-Follow these steps:
+### 👤 Sample Student Accounts
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+* **Username:** `TomChambers@school.com`
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+  * **Password:** `11111209`
+* **Username:** `ChantalBrown@school.com`
 
-# Step 3: Install the necessary dependencies.
-npm i
+  * **Password:** `11111113`
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 💻 Technologies Used
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+This project was built using:
 
-**Use GitHub Codespaces**
+* ⚡ **Vite** – For super-fast development and builds
+* 🧠 **TypeScript** – For reliable, type-safe coding
+* ⚛️ **React** – For building the interactive user interface
+* 🎨 **shadcn-ui** – For clean and accessible UI components
+* 🌈 **Tailwind CSS** – For sleek, responsive styling
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🚀 Try It Out
 
-This project is built with:
+Visit the live site and start exploring:
+🔗 [https://book-pass-on.lovable.app/](https://book-pass-on.lovable.app/)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/a8c691db-b2e1-4d45-91dd-7032d4ac6099) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
