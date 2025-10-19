@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import TextbookCard from "@/components/TextbookCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import Fuse from "fuse.js";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -26,7 +27,7 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [textbooks, setTextbooks] = useState<any[]>([]);
+  const [allTextbooks, setAllTextbooks] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
@@ -62,30 +63,45 @@ const Dashboard = () => {
       fetchTextbooks();
       fetchLocations();
     }
-  }, [user, searchQuery]);
+  }, [user]);
 
   const fetchTextbooks = async () => {
     try {
       setLoading(true);
-      let query = supabase
+      const { data, error } = await supabase
         .from("textbooks")
         .select("*")
         .eq("status", "available")
         .neq("owner_id", user.id);
 
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,isbn.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
-      setTextbooks(data || []);
+      setAllTextbooks(data || []);
     } catch (error: any) {
       toast.error("Error loading textbooks");
     } finally {
       setLoading(false);
     }
   };
+
+  // Fuzzy search configuration
+  const fuse = useMemo(() => {
+    return new Fuse(allTextbooks, {
+      keys: ['title', 'author', 'isbn'],
+      threshold: 0.4, // 0 = exact match, 1 = match anything
+      includeScore: true,
+      minMatchCharLength: 2,
+    });
+  }, [allTextbooks]);
+
+  // Filter textbooks with fuzzy matching
+  const textbooks = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allTextbooks;
+    }
+    
+    const results = fuse.search(searchQuery);
+    return results.map(result => result.item);
+  }, [searchQuery, allTextbooks, fuse]);
 
   const fetchLocations = async () => {
     try {
