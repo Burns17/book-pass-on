@@ -17,6 +17,7 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log("Fetching users...");
       const { data, error } = await supabase
         .from("profiles")
         .select(`
@@ -26,11 +27,12 @@ export const UserManagement = () => {
         `)
         .order("created_at", { ascending: false });
 
+      console.log("Users query result:", { data, error });
       if (error) throw error;
       setUsers(data || []);
     } catch (error: any) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to load users");
+      toast.error("Failed to load users: " + error.message);
     } finally {
       setLoading(false);
     }
